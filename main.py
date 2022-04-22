@@ -13,6 +13,7 @@ from Detectors import create_detector
 from Matchers import create_matcher
 from VO.VisualOdometry import VisualOdometry, AbosluteScaleComputer
 
+from tqdm import tqdm
 
 def keypoints_plot(img, vo):
     if img.shape[2] == 1:
@@ -59,7 +60,7 @@ class TrajPlotter(object):
 
 def run(args):
     with open(args.config, 'r') as f:
-        config = yaml.load(f)
+        config = yaml.full_load(f)
 
     # create dataloader
     loader = create_dataloader(config["dataset"])
@@ -76,6 +77,7 @@ def run(args):
     log_fopen = open("results/" + fname + ".txt", mode='a')
 
     vo = VisualOdometry(detector, matcher, loader.cam)
+    pbar = tqdm(4)
     for i, img in enumerate(loader):
         gt_pose = loader.get_cur_pose()
         R, t = vo.update(img, absscale.update(gt_pose))
@@ -91,6 +93,7 @@ def run(args):
         cv2.imshow("trajectory", img2)
         if cv2.waitKey(10) == 27:
             break
+        pbar.update()
 
     cv2.imwrite("results/" + fname + '.png', img2)
 
